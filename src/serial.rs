@@ -7,7 +7,6 @@
 //! - [Advanced USART Functions](https://github.com/stm32-rs/stm32h7xx-hal/blob/master/examples/serial-advanced.rs)
 //! - [Inverted Signal Levels](https://github.com/stm32-rs/stm32h7xx-hal/blob/master/examples/serial-inverted-loopback.rs)
 
-use core::cell::UnsafeCell;
 use core::fmt;
 use core::marker::PhantomData;
 use core::ptr;
@@ -1113,9 +1112,8 @@ macro_rules! usart {
                         // NOTE(write_volatile) 8-bit write that's not
                         // possible through the svd2rust API
                         unsafe {
-                            let tdr = &(*$USARTX::ptr()).tdr() as *const _ as *const UnsafeCell<u8>;
-
-                            ptr::write_volatile(UnsafeCell::raw_get(tdr), byte)
+                            let p = (*$USARTX::ptr()).tdr().as_ptr() as *mut u8;
+                            ptr::write_volatile(p, byte);
                         }
                         Ok(())
                     } else {

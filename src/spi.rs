@@ -62,7 +62,6 @@
 //!
 //! [embedded_hal]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/spi/index.html
 
-use core::cell::UnsafeCell;
 use core::marker::PhantomData;
 use core::ptr;
 
@@ -1081,11 +1080,8 @@ macro_rules! spi {
                             {
                                 // NOTE(write_volatile) see note above
                                 unsafe {
-                                    let txdr = &self.spi.txdr() as *const _ as *const UnsafeCell<$TY>;
-                                    ptr::write_volatile(
-                                        UnsafeCell::raw_get(txdr),
-                                        word,
-                                    )
+                                    let p = self.spi.txdr().as_ptr() as *mut $TY;
+                                    ptr::write_volatile(p, word);
                                 }
                                 // write CSTART to start a transaction in
                                 // master mode
@@ -1111,11 +1107,8 @@ macro_rules! spi {
                             {
                                 // NOTE(write_volatile/read_volatile) write/read only 1 word
                                 unsafe {
-                                    let txdr = &self.spi.txdr() as *const _ as *const UnsafeCell<$TY>;
-                                    ptr::write_volatile(
-                                        UnsafeCell::raw_get(txdr),
-                                        word,
-                                    );
+                                    let p = self.spi.txdr().as_ptr() as *mut $TY;
+                                    ptr::write_volatile(p, word);
                                     return Ok(ptr::read_volatile(
                                         &self.spi.rxdr() as *const _ as *const $TY,
                                     ));

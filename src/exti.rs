@@ -106,93 +106,93 @@ pub enum Event {
 #[cfg(not(feature = "rm0399"))]
 macro_rules! reg_for_cpu {
     ($self:ident, imr1) => {
-        $self.cpuimr1
+        $self.cpuimr1()
     };
     ($self:ident, imr2) => {
-        $self.cpuimr2
+        $self.cpuimr2()
     };
     ($self:ident, imr3) => {
-        $self.cpuimr3
+        $self.cpuimr3()
     };
     ($self:ident, emr1) => {
-        $self.cpuemr1
+        $self.cpuemr1()
     };
     ($self:ident, emr2) => {
-        $self.cpuemr2
+        $self.cpuemr2()
     };
     ($self:ident, emr3) => {
-        $self.cpuemr3
+        $self.cpuemr3()
     };
     ($self:ident, pr1) => {
-        $self.cpupr1
+        $self.cpupr1()
     };
     ($self:ident, pr2) => {
-        $self.cpupr2
+        $self.cpupr2()
     };
     ($self:ident, pr3) => {
-        $self.cpupr3
+        $self.cpupr3()
     };
 }
 
 #[cfg(all(feature = "rm0399", feature = "cm7"))]
 macro_rules! reg_for_cpu {
     ($self:ident, imr1) => {
-        $self.c1imr1
+        $self.c1imr1()
     };
     ($self:ident, imr2) => {
-        $self.c1imr2
+        $self.c1imr2()
     };
     ($self:ident, imr3) => {
-        $self.c1imr3
+        $self.c1imr3()
     };
     ($self:ident, emr1) => {
-        $self.c1emr1
+        $self.c1emr1()
     };
     ($self:ident, emr2) => {
-        $self.c1emr2
+        $self.c1emr2()
     };
     ($self:ident, emr3) => {
-        $self.c1emr3
+        $self.c1emr3()
     };
     ($self:ident, pr1) => {
-        $self.c1pr1
+        $self.c1pr1()
     };
     ($self:ident, pr2) => {
-        $self.c1pr2
+        $self.c1pr2()
     };
     ($self:ident, pr3) => {
-        $self.c1pr3
+        $self.c1pr3()
     };
 }
 
 #[cfg(all(feature = "rm0399", feature = "cm4"))]
 macro_rules! reg_for_cpu {
     ($self:ident, imr1) => {
-        $self.c2imr1
+        $self.c2imr1()
     };
     ($self:ident, imr2) => {
-        $self.c2imr2
+        $self.c2imr2()
     };
     ($self:ident, imr3) => {
-        $self.c2imr3
+        $self.c2imr3()
     };
     ($self:ident, emr1) => {
-        $self.c2emr1
+        $self.c2emr1()
     };
     ($self:ident, emr2) => {
-        $self.c2emr2
+        $self.c2emr2()
     };
     ($self:ident, emr3) => {
-        $self.c2emr3
+        $self.c2emr3()
     };
     ($self:ident, pr1) => {
-        $self.c2pr1
+        $self.c2pr1()
     };
     ($self:ident, pr2) => {
-        $self.c2pr2
+        $self.c2pr2()
     };
     ($self:ident, pr3) => {
-        $self.c2pr3
+        $self.c2pr3()
     };
 }
 

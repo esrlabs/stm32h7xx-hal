@@ -144,23 +144,23 @@
 
 use crate::pwr::PowerConfiguration;
 use crate::pwr::VoltageScale as Voltage;
-use crate::stm32::rcc::cfgr::SW_A as SW;
-use crate::stm32::rcc::cfgr::TIMPRE_A as TIMPRE;
-use crate::stm32::rcc::pllckselr::PLLSRC_A as PLLSRC;
+use crate::stm32::rcc::cfgr::SW;
+use crate::stm32::rcc::cfgr::TIMPRE;
+use crate::stm32::rcc::pllckselr::PLLSRC;
 use crate::stm32::{RCC, SYSCFG};
 use crate::time::Hertz;
 
 #[cfg(feature = "rm0455")]
-use crate::stm32::rcc::cdcfgr1::HPRE_A as HPRE;
+use crate::stm32::rcc::cdcfgr1::HPRE;
 #[cfg(not(feature = "rm0455"))]
-use crate::stm32::rcc::d1cfgr::HPRE_A as HPRE;
+use crate::stm32::rcc::d1cfgr::HPRE;
 #[cfg(feature = "log")]
 use log::debug;
 
 #[cfg(feature = "rm0455")]
-use crate::stm32::rcc::cdccipr::CKPERSEL_A as CKPERSEL;
+use crate::stm32::rcc::cdccipr::CKPERSEL;
 #[cfg(not(feature = "rm0455"))]
-use crate::stm32::rcc::d1ccipr::CKPERSEL_A as CKPERSEL;
+use crate::stm32::rcc::d1ccipr::CKPERSEL;
 
 pub mod backup;
 mod core_clocks;
@@ -576,10 +576,10 @@ impl Rcc {
 
         let flash = unsafe { &(*FLASH::ptr()) };
         // Adjust flash wait states
-        flash.acr.write(|w| unsafe {
+        flash.acr().write(|w| unsafe {
             w.wrhighfreq().bits(progr_delay).latency().bits(wait_states)
         });
-        while flash.acr.read().latency().bits() != wait_states {}
+        while flash.acr().read().latency().bits() != wait_states {}
     }
 
     /// Setup sys_ck
@@ -696,16 +696,19 @@ impl Rcc {
         // do so it would need to ensure all PLLxON bits are clear
         // before changing the value of HSIDIV
         let hsi = HSI;
-        assert!(rcc.cr.read().hsion().is_on(), "HSI oscillator must be on!");
-        assert!(rcc.cr.read().hsidiv().is_div1());
+        assert!(
+            rcc.cr().read().hsion().is_on(),
+            "HSI oscillator must be on!"
+        );
+        assert!(rcc.cr().read().hsidiv().is_div1());
 
         let csi = CSI;
         let hsi48 = HSI48;
 
         // Enable LSI for RTC, IWDG, AWU, or MCO2
         let lsi = LSI;
-        rcc.csr.modify(|_, w| w.lsion().on());
-        while rcc.csr.read().lsirdy().is_not_ready() {}
+        rcc.csr().modify(|_, w| w.lsion().on());
+        while rcc.csr().read().lsirdy().is_not_ready() {}
 
         // per_ck from HSI by default
         let (per_ck, ckpersel) =
@@ -822,18 +825,18 @@ impl Rcc {
         Self::flash_setup(rcc_aclk, pwrcfg.vos);
 
         // Ensure CSI is on and stable
-        rcc.cr.modify(|_, w| w.csion().on());
-        while rcc.cr.read().csirdy().is_not_ready() {}
+        rcc.cr().modify(|_, w| w.csion().on());
+        while rcc.cr().read().csirdy().is_not_ready() {}
 
         // Ensure HSI48 is on and stable
-        rcc.cr.modify(|_, w| w.hsi48on().on());
-        while rcc.cr.read().hsi48rdy().is_not_ready() {}
+        rcc.cr().modify(|_, w| w.hsi48on().on());
+        while rcc.cr().read().hsi48rdy().is_not_ready() {}
 
         // Set the MCO outputs.
         //
         // It is highly recommended to configure these bits only after
         // reset, before enabling the external oscillators and the PLLs.
-        rcc.cfgr.modify(|_, w| {
+        rcc.cfgr().modify(|_, w| {
             w.mco1()
                 .variant(self.config.mco1.source)
                 .mco1pre()
@@ -848,10 +851,10 @@ impl Rcc {
         let hse_ck = match self.config.hse {
             Some(hse) => {
                 // Ensure HSE is on and stable
-                rcc.cr.modify(|_, w| {
+                rcc.cr().modify(|_, w| {
                     w.hseon().on().hsebyp().bit(self.config.bypass_hse)
                 });
-                while rcc.cr.read().hserdy().is_not_ready() {}
+                while rcc.cr().read().hserdy().is_not_ready() {}
 
                 Some(Hertz::from_raw(hse))
             }
@@ -864,32 +867,32 @@ impl Rcc {
         } else {
             PLLSRC::Hsi
         };
-        rcc.pllckselr.modify(|_, w| w.pllsrc().variant(pllsrc));
+        rcc.pllckselr().modify(|_, w| w.pllsrc().variant(pllsrc));
 
         // PLL1
         if pll1_p_ck.is_some() {
             // Enable PLL and wait for it to stabilise
-            rcc.cr.modify(|_, w| w.pll1on().on());
-            while rcc.cr.read().pll1rdy().is_not_ready() {}
+            rcc.cr().modify(|_, w| w.pll1on().on());
+            while rcc.cr().read().pll1rdy().is_not_ready() {}
         }
 
         // PLL2
         if pll2_p_ck.is_some() {
             // Enable PLL and wait for it to stabilise
-            rcc.cr.modify(|_, w| w.pll2on().on());
-            while rcc.cr.read().pll2rdy().is_not_ready() {}
+            rcc.cr().modify(|_, w| w.pll2on().on());
+            while rcc.cr().read().pll2rdy().is_not_ready() {}
         }
 
         // PLL3
         if pll3_p_ck.is_some() {
             // Enable PLL and wait for it to stabilise
-            rcc.cr.modify(|_, w| w.pll3on().on());
-            while rcc.cr.read().pll3rdy().is_not_ready() {}
+            rcc.cr().modify(|_, w| w.pll3on().on());
+            while rcc.cr().read().pll3rdy().is_not_ready() {}
         }
 
         // Core Prescaler / AHB Prescaler / APB3 Prescaler
         #[cfg(not(feature = "rm0455"))]
-        rcc.d1cfgr.modify(|_, w| unsafe {
+        rcc.d1cfgr().modify(|_, w| unsafe {
             w.d1cpre()
                 .bits(d1cpre_bits)
                 .d1ppre() // D1 contains APB3
@@ -909,13 +912,13 @@ impl Rcc {
         // Ensure core prescaler value is valid before future lower
         // core voltage
         #[cfg(not(feature = "rm0455"))]
-        while rcc.d1cfgr.read().d1cpre().bits() != d1cpre_bits {}
+        while rcc.d1cfgr().read().d1cpre().bits() != d1cpre_bits {}
         #[cfg(feature = "rm0455")]
         while rcc.cdcfgr1.read().cdcpre().bits() != d1cpre_bits {}
 
         // APB1 / APB2 Prescaler
         #[cfg(not(feature = "rm0455"))]
-        rcc.d2cfgr.modify(|_, w| unsafe {
+        rcc.d2cfgr().modify(|_, w| unsafe {
             w.d2ppre1() // D2 contains APB1
                 .bits(ppre1_bits)
                 .d2ppre2() // D2 also contains APB2
@@ -931,7 +934,7 @@ impl Rcc {
 
         // APB4 Prescaler
         #[cfg(not(feature = "rm0455"))]
-        rcc.d3cfgr.modify(|_, w| unsafe {
+        rcc.d3cfgr().modify(|_, w| unsafe {
             w.d3ppre() // D3 contains APB4
                 .bits(ppre4_bits)
         });
@@ -943,12 +946,12 @@ impl Rcc {
 
         // Peripheral Clock (per_ck)
         #[cfg(not(feature = "rm0455"))]
-        rcc.d1ccipr.modify(|_, w| w.ckpersel().variant(ckpersel));
+        rcc.d1ccipr().modify(|_, w| w.ckpersel().variant(ckpersel));
         #[cfg(feature = "rm0455")]
         rcc.cdccipr.modify(|_, w| w.ckpersel().variant(ckpersel));
 
         // Set timer clocks prescaler setting
-        rcc.cfgr.modify(|_, w| w.timpre().variant(timpre));
+        rcc.cfgr().modify(|_, w| w.timpre().variant(timpre));
 
         // Select system clock source
         let swbits = match (sys_use_pll1_p, self.config.hse.is_some()) {
@@ -956,19 +959,19 @@ impl Rcc {
             (false, true) => SW::Hse as u8,
             _ => SW::Hsi as u8,
         };
-        rcc.cfgr.modify(|_, w| unsafe { w.sw().bits(swbits) });
-        while rcc.cfgr.read().sws().bits() != swbits {}
+        rcc.cfgr().modify(|_, w| unsafe { w.sw().bits(swbits) });
+        while rcc.cfgr().read().sws().bits() != swbits {}
 
         // IO compensation cell - Requires CSI clock and SYSCFG
-        assert!(rcc.cr.read().csirdy().is_ready());
-        rcc.apb4enr.modify(|_, w| w.syscfgen().enabled());
+        assert!(rcc.cr().read().csirdy().is_ready());
+        rcc.apb4enr().modify(|_, w| w.syscfgen().enabled());
 
         // Enable the compensation cell, using back-bias voltage code
         // provide by the cell.
-        syscfg.cccsr.modify(|_, w| {
+        syscfg.cccsr().modify(|_, w| {
             w.en().set_bit().cs().clear_bit().hslv().clear_bit()
         });
-        while syscfg.cccsr.read().ready().bit_is_clear() {}
+        while syscfg.cccsr().read().ready().bit_is_clear() {}
 
         // This section prints the final register configuration for the main RCC registers:
         // - System Clock and PLL Source MUX

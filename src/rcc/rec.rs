@@ -285,7 +285,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                     interrupt::free(|_| {
                         // LPEN
                         let lpenr = unsafe {
-                            &(*RCC::ptr()).[< $AXBn:lower lpenr >]
+                            &(*RCC::ptr()).[< $AXBn:lower lpenr >]()
                         };
                         lpenr.modify(|_, w| w.[< $p:lower lpen >]()
                                      .bit(lpm != LowPowerMode::Off));
@@ -308,7 +308,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                     // unsafe: Owned exclusive access to this bitfield
                     interrupt::free(|_| {
                         let enr = unsafe {
-                            &(*RCC::ptr()).[< $AXBn:lower enr >]
+                            &(*RCC::ptr()).[< $AXBn:lower enr >]()
                         };
                         enr.modify(|_, w| w.
                                    [< $p:lower en >]().set_bit());
@@ -320,7 +320,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                     // unsafe: Owned exclusive access to this bitfield
                     interrupt::free(|_| {
                         let enr = unsafe {
-                            &(*RCC::ptr()).[< $AXBn:lower enr >]
+                            &(*RCC::ptr()).[< $AXBn:lower enr >]()
                         };
                         enr.modify(|_, w| w.
                                    [< $p:lower en >]().clear_bit());
@@ -332,7 +332,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                     // unsafe: Owned exclusive access to this bitfield
                     interrupt::free(|_| {
                         let rstr = unsafe {
-                            &(*RCC::ptr()).[< $AXBn:lower rstr >]
+                            &(*RCC::ptr()).[< $AXBn:lower rstr >]()
                         };
                         rstr.modify(|_, w| w.
                                     [< $p:lower rst >]().set_bit());
@@ -359,7 +359,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                         // unsafe: Owned exclusive access to this bitfield
                         interrupt::free(|_| {
                             let ccip = unsafe {
-                                &(*RCC::ptr()).[< $ccip r >]
+                                &(*RCC::ptr()).[< $ccip r >]()
                             };
                             ccip.modify(|_, w| w.
                                         [< $pk:lower sel >]().variant(sel));
@@ -374,7 +374,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                     {
                         // unsafe: We only read from this bitfield
                         let ccip = unsafe {
-                            &(*RCC::ptr()).[< $ccip r >]
+                            &(*RCC::ptr()).[< $ccip r >]()
                         };
                         ccip.read().[< $pk:lower sel >]().variant()
                     }
@@ -384,7 +384,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                 #[doc=$clk_doc]
                 /// kernel clock source selection
                 pub type [< $pk ClkSel >] =
-                    rcc::[< $ccip r >]::[< $pk:upper SEL_A >];
+                    rcc::[< $ccip r >]::[< $pk:upper SEL>];
             )*
             $(          // Group kernel clocks
                 impl [< $pk_g ClkSelGetter >] for $p {}
@@ -394,7 +394,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                     #[doc=$clk_doc_g]
                     /// kernel clock source selection.
                     pub type [< $pk_g ClkSel >] =
-                        rcc::[< $ccip_g r >]::[< $pk_g:upper SEL_A >];
+                        rcc::[< $ccip_g r >]::[< $pk_g:upper SEL >];
 
                     /// Can return
                     #[doc=$clk_doc_g]
@@ -410,7 +410,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                         {
                             // unsafe: We only read from this bitfield
                             let ccip = unsafe {
-                                &(*RCC::ptr()).[< $ccip_g r >]
+                                &(*RCC::ptr()).[< $ccip_g r >]()
                             };
                             ccip.read().[< $pk_g:lower sel >]().variant()
                         }
@@ -432,7 +432,7 @@ macro_rules! peripheral_reset_and_enable_control_generator {
                             // unsafe: Owned exclusive access to this bitfield
                             interrupt::free(|_| {
                                 let ccip = unsafe {
-                                    &(*RCC::ptr()).[< $ccip_g r >]
+                                    &(*RCC::ptr()).[< $ccip_g r >]()
                                 };
                                 ccip.modify(|_, w| w.
                                             [< $pk_g:lower sel >]().variant(sel));
@@ -459,7 +459,7 @@ macro_rules! variant_return_type {
 #[cfg(not(feature = "rm0455"))]
 macro_rules! autonomous {
     ($Auto:ident) => {
-        &(*RCC::ptr()).d3amr
+        &(*RCC::ptr()).d3amr()
     };
 }
 #[cfg(feature = "rm0455")]

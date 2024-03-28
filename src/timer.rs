@@ -70,17 +70,17 @@ impl GetClk for LPTIM1 {
     fn get_clk(clocks: &CoreClocks) -> Option<Hertz> {
         // unsafe: read only
         #[cfg(not(feature = "rm0455"))]
-        let ccip2r = &unsafe { &*stm32::RCC::ptr() }.d2ccip2r;
+        let ccip2r = &unsafe { &*stm32::RCC::ptr() }.d2ccip2r();
         #[cfg(feature = "rm0455")]
         let ccip2r = &unsafe { &*stm32::RCC::ptr() }.cdccip2r;
 
         match ccip2r.read().lptim1sel().variant() {
-            Some(ccip2r::LPTIM1SEL_A::RccPclk1) => Some(clocks.pclk1()),
-            Some(ccip2r::LPTIM1SEL_A::Pll2P) => clocks.pll2_p_ck(),
-            Some(ccip2r::LPTIM1SEL_A::Pll3R) => clocks.pll3_r_ck(),
-            Some(ccip2r::LPTIM1SEL_A::Lse) => unimplemented!(),
-            Some(ccip2r::LPTIM1SEL_A::Lsi) => clocks.lsi_ck(),
-            Some(ccip2r::LPTIM1SEL_A::Per) => clocks.per_ck(),
+            Some(ccip2r::LPTIM1SEL::RccPclk1) => Some(clocks.pclk1()),
+            Some(ccip2r::LPTIM1SEL::Pll2P) => clocks.pll2_p_ck(),
+            Some(ccip2r::LPTIM1SEL::Pll3R) => clocks.pll3_r_ck(),
+            Some(ccip2r::LPTIM1SEL::Lse) => unimplemented!(),
+            Some(ccip2r::LPTIM1SEL::Lsi) => clocks.lsi_ck(),
+            Some(ccip2r::LPTIM1SEL::Per) => clocks.per_ck(),
             _ => unreachable!(),
         }
     }
@@ -92,17 +92,17 @@ impl GetClk for LPTIM2 {
     fn get_clk(clocks: &CoreClocks) -> Option<Hertz> {
         // unsafe: read only
         #[cfg(not(feature = "rm0455"))]
-        let srdccipr = &unsafe { &*stm32::RCC::ptr() }.d3ccipr;
+        let srdccipr = &unsafe { &*stm32::RCC::ptr() }.d3ccipr();
         #[cfg(feature = "rm0455")]
         let srdccipr = &unsafe { &*stm32::RCC::ptr() }.srdccipr;
 
         match srdccipr.read().lptim2sel().variant() {
-            Some(srdccipr::LPTIM2SEL_A::RccPclk4) => Some(clocks.pclk4()),
-            Some(srdccipr::LPTIM2SEL_A::Pll2P) => clocks.pll2_p_ck(),
-            Some(srdccipr::LPTIM2SEL_A::Pll3R) => clocks.pll3_r_ck(),
-            Some(srdccipr::LPTIM2SEL_A::Lse) => unimplemented!(),
-            Some(srdccipr::LPTIM2SEL_A::Lsi) => clocks.lsi_ck(),
-            Some(srdccipr::LPTIM2SEL_A::Per) => clocks.per_ck(),
+            Some(srdccipr::LPTIM2SEL::RccPclk4) => Some(clocks.pclk4()),
+            Some(srdccipr::LPTIM2SEL::Pll2P) => clocks.pll2_p_ck(),
+            Some(srdccipr::LPTIM2SEL::Pll3R) => clocks.pll3_r_ck(),
+            Some(srdccipr::LPTIM2SEL::Lse) => unimplemented!(),
+            Some(srdccipr::LPTIM2SEL::Lsi) => clocks.lsi_ck(),
+            Some(srdccipr::LPTIM2SEL::Per) => clocks.per_ck(),
             _ => unreachable!(),
         }
     }
@@ -137,15 +137,15 @@ macro_rules! impl_clk_lptim345 {
                 /// Current kernel clock
                 fn get_clk(clocks: &CoreClocks) -> Option<Hertz> {
                     // unsafe: read only
-                    let d3ccipr = &unsafe { &*stm32::RCC::ptr() }.d3ccipr;
+                    let d3ccipr = &unsafe { &*stm32::RCC::ptr() }.d3ccipr();
 
                     match d3ccipr.read().lptim345sel().variant() {
-                        Some(srdccipr::LPTIM345SEL_A::RccPclk4) => Some(clocks.pclk4()),
-                        Some(srdccipr::LPTIM345SEL_A::Pll2P) => clocks.pll2_p_ck(),
-                        Some(srdccipr::LPTIM345SEL_A::Pll3R) => clocks.pll3_r_ck(),
-                        Some(srdccipr::LPTIM345SEL_A::Lse) => unimplemented!(),
-                        Some(srdccipr::LPTIM345SEL_A::Lsi) => clocks.lsi_ck(),
-                        Some(srdccipr::LPTIM345SEL_A::Per) => clocks.per_ck(),
+                        Some(srdccipr::LPTIM2SEL::RccPclk4) => Some(clocks.pclk4()),
+                        Some(srdccipr::LPTIM2SEL::Pll2P) => clocks.pll2_p_ck(),
+                        Some(srdccipr::LPTIM2SEL::Pll3R) => clocks.pll3_r_ck(),
+                        Some(srdccipr::LPTIM2SEL::Lse) => unimplemented!(),
+                        Some(srdccipr::LPTIM2SEL::Lsi) => clocks.lsi_ck(),
+                        Some(srdccipr::LPTIM2SEL::Per) => clocks.per_ck(),
                         _ => unreachable!(),
                     }
                 }
@@ -438,9 +438,9 @@ macro_rules! hal {
                 /// ```
                 fn set_timeout_ticks(&mut self, ticks: u32) {
                     let (psc, arr) = calculate_timeout_ticks_register_values(ticks);
-                    self.tim.psc.write(|w| w.psc().bits(psc));
+                    self.tim.psc().write(|w| w.psc().bits(psc));
                     #[allow(unused_unsafe)] // method is safe for some timers
-                    self.tim.arr.write(|w| unsafe { w.bits(u32(arr)) });
+                    self.tim.arr().write(|w| unsafe { w.bits(u32(arr)) });
                 }
 
                 /// Configures the timer to count up at the given frequency
@@ -452,11 +452,11 @@ macro_rules! hal {
                     let div = self.clk / frequency.raw();
 
                     let psc = u16(div - 1).unwrap();
-                    self.tim.psc.write(|w| w.psc().bits(psc));
+                    self.tim.psc().write(|w| w.psc().bits(psc));
 
                     let counter_max = u32(<$cntType>::MAX);
                     #[allow(unused_unsafe)] // method is safe for some timers
-                    self.tim.arr.write(|w| unsafe { w.bits(counter_max) });
+                    self.tim.arr().write(|w| unsafe { w.bits(counter_max) });
                 }
 
                 /// Applies frequency/timeout changes immediately
@@ -465,32 +465,32 @@ macro_rules! hal {
                 /// value when its counter overflows. This function causes
                 /// those changes to happen immediately. Also clears the counter.
                 pub fn apply_freq(&mut self) {
-                    self.tim.egr.write(|w| w.ug().set_bit());
+                    self.tim.egr().write(|w| w.ug().set_bit());
                 }
 
                 /// Pauses the TIM peripheral
                 pub fn pause(&mut self) {
-                    self.tim.cr1.modify(|_, w| w.cen().clear_bit());
+                    self.tim.cr1().modify(|_, w| w.cen().clear_bit());
                 }
 
                 /// Resume (unpause) the TIM peripheral
                 pub fn resume(&mut self) {
-                    self.tim.cr1.modify(|_, w| w.cen().set_bit());
+                    self.tim.cr1().modify(|_, w| w.cen().set_bit());
                 }
 
                 /// Set Update Request Source to counter overflow/underflow only
                 pub fn urs_counter_only(&mut self) {
-                    self.tim.cr1.modify(|_, w| w.urs().counter_only());
+                    self.tim.cr1().modify(|_, w| w.urs().counter_only());
                 }
 
                 /// Reset the counter of the TIM peripheral
                 pub fn reset_counter(&mut self) {
-                    self.tim.cnt.reset();
+                    self.tim.cnt().reset();
                 }
 
                 /// Read the counter of the TIM peripheral
                 pub fn counter(&self) -> u32 {
-                    self.tim.cnt.read().cnt().bits().into()
+                    self.tim.cnt().read().cnt().bits().into()
                 }
 
                 /// Start listening for `event`
@@ -498,7 +498,7 @@ macro_rules! hal {
                     match event {
                         Event::TimeOut => {
                             // Enable update event interrupt
-                            self.tim.dier.write(|w| w.uie().set_bit());
+                            self.tim.dier().write(|w| w.uie().set_bit());
                         }
                     }
                 }
@@ -508,26 +508,26 @@ macro_rules! hal {
                     match event {
                         Event::TimeOut => {
                             // Disable update event interrupt
-                            self.tim.dier.write(|w| w.uie().clear_bit());
-                            let _ = self.tim.dier.read();
-                            let _ = self.tim.dier.read(); // Delay 2 peripheral clocks
+                            self.tim.dier().write(|w| w.uie().clear_bit());
+                            let _ = self.tim.dier().read();
+                            let _ = self.tim.dier().read(); // Delay 2 peripheral clocks
                         }
                     }
                 }
 
                 /// Check if Update Interrupt flag is cleared
                 pub fn is_irq_clear(&mut self) -> bool {
-                    self.tim.sr.read().uif().bit_is_clear()
+                    self.tim.sr().read().uif().bit_is_clear()
                 }
 
                 /// Clears interrupt flag
                 pub fn clear_irq(&mut self) {
-                    self.tim.sr.modify(|_, w| {
+                    self.tim.sr().modify(|_, w| {
                         // Clears timeout event
                         w.uif().clear_bit()
                     });
-                    let _ = self.tim.sr.read();
-                    let _ = self.tim.sr.read(); // Delay 2 peripheral clocks
+                    let _ = self.tim.sr().read();
+                    let _ = self.tim.sr().read(); // Delay 2 peripheral clocks
                 }
 
                 /// Releases the TIM peripheral
@@ -619,7 +619,7 @@ macro_rules! lptim_hal {
                     self.reset_counter();
 
                     // Disable counter
-                    self.tim.cr.write(|w| w.enable().disabled());
+                    self.tim.cr().write(|w| w.enable().disabled());
 
                     // Set prescale and ARR
                     self.priv_set_freq(timeout.into()); // side effect: enables counter
@@ -628,12 +628,12 @@ macro_rules! lptim_hal {
                     self.clear_irq();
 
                     // Start counter
-                    self.tim.cr.write(|w| w.enable().enabled());
-                    self.tim.cr.write(|w| w.cntstrt().set_bit().enable().enabled());
+                    self.tim.cr().write(|w| w.enable().enabled());
+                    self.tim.cr().write(|w| w.cntstrt().set_bit().enable().enabled());
                 }
 
                 fn wait(&mut self) -> nb::Result<(), Void> {
-                    if self.tim.isr.read().arrm().bit_is_clear() {
+                    if self.tim.isr().read().arrm().bit_is_clear() {
                         Err(nb::Error::WouldBlock)
                     } else {
                         self.clear_irq();
@@ -674,7 +674,7 @@ macro_rules! lptim_hal {
                     timer.reset_counter();
 
                     // Disable counter
-                    timer.tim.cr.write(|w| w.enable().disabled());
+                    timer.tim.cr().write(|w| w.enable().disabled());
 
                     // Set tick frequency
                     timer.priv_set_tick_freq(frequency);
@@ -683,8 +683,8 @@ macro_rules! lptim_hal {
                     timer.clear_irq();
 
                     // Start counter
-                    timer.tim.cr.write(|w| w.enable().enabled());
-                    timer.tim.cr.write(|w| w.cntstrt().set_bit().enable().enabled());
+                    timer.tim.cr().write(|w| w.enable().enabled());
+                    timer.tim.cr().write(|w| w.cntstrt().set_bit().enable().enabled());
 
                     timer
                 }
@@ -718,15 +718,15 @@ macro_rules! lptim_hal {
 
                 fn reset_counter(&mut self) {
                     // Counter Reset
-                    self.tim.cr.write(|w| w.countrst().set_bit().enable().enabled());
-                    let _ = self.tim.cr.read();
-                    let _ = self.tim.cr.read(); // Delay 2 peripheral clocks
+                    self.tim.cr().write(|w| w.countrst().set_bit().enable().enabled());
+                    let _ = self.tim.cr().read();
+                    let _ = self.tim.cr().read(); // Delay 2 peripheral clocks
                 }
 
                 /// Disables the LPTIM peripheral
                 fn pause(self) -> Self::Disabled {
                     // Disable the entire timer
-                    self.tim.cr.write(|w| w.enable().disabled());
+                    self.tim.cr().write(|w| w.enable().disabled());
 
                     Self::Disabled {
                         clk: self.clk,
@@ -744,7 +744,7 @@ macro_rules! lptim_hal {
                     self.priv_set_freq(timeout); // side effect: enables counter
 
                     // Disable timer
-                    self.tim.cr.write(|w| w.enable().disabled());
+                    self.tim.cr().write(|w| w.enable().disabled());
                 }
 
                 fn set_tick_freq(&mut self, frequency: Hertz)
@@ -752,14 +752,14 @@ macro_rules! lptim_hal {
                     self.priv_set_tick_freq(frequency); // side effect: enables counter
 
                     // Disable timer
-                    self.tim.cr.write(|w| w.enable().disabled());
+                    self.tim.cr().write(|w| w.enable().disabled());
                 }
 
                 fn listen(&mut self, event: Event) {
                     match event {
                         Event::TimeOut => {
                             // Enable autoreload match interrupt
-                            self.tim.ier.modify(|_, w| w.arrmie().set_bit());
+                            self.tim.ier().modify(|_, w| w.arrmie().set_bit());
                         }
                     }
                 }
@@ -768,9 +768,9 @@ macro_rules! lptim_hal {
                     match event {
                         Event::TimeOut => {
                             // Disable autoreload match interrupt
-                            self.tim.ier.modify(|_, w| w.arrmie().clear_bit());
-                            let _ = self.tim.ier.read();
-                            let _ = self.tim.ier.read(); // Delay 2 peripheral clocks
+                            self.tim.ier().modify(|_, w| w.arrmie().clear_bit());
+                            let _ = self.tim.ier().read();
+                            let _ = self.tim.ier().read(); // Delay 2 peripheral clocks
                         }
                     }
                 }
@@ -778,8 +778,8 @@ macro_rules! lptim_hal {
                 /// Enables the LPTIM, and starts counting
                 fn resume(self) -> Self::Enabled {
                     // Enable and start counting
-                    self.tim.cr.write(|w| w.enable().enabled());
-                    self.tim.cr.write(|w| w.cntstrt().set_bit().enable().enabled());
+                    self.tim.cr().write(|w| w.enable().enabled());
+                    self.tim.cr().write(|w| w.cntstrt().set_bit().enable().enabled());
 
                     Self::Enabled {
                         clk: self.clk,
@@ -804,14 +804,14 @@ macro_rules! lptim_hal {
 
                     // Calculate prescaler
                     let (prescale, prescale_div) = match ticks / (1 << 16) {
-                        0 => ($timXpac::cfgr::PRESC_A::Div1, 1),
-                        1 => ($timXpac::cfgr::PRESC_A::Div2, 2),
-                        2..=3 => ($timXpac::cfgr::PRESC_A::Div4, 4),
-                        4..=7 => ($timXpac::cfgr::PRESC_A::Div8, 8),
-                        8..=15 => ($timXpac::cfgr::PRESC_A::Div16, 16),
-                        16..=31 => ($timXpac::cfgr::PRESC_A::Div32, 32),
-                        32..=63 => ($timXpac::cfgr::PRESC_A::Div64, 64),
-                        _ => ($timXpac::cfgr::PRESC_A::Div128, 128),
+                        0 => ($timXpac::cfgr::PRESC::Div1, 1),
+                        1 => ($timXpac::cfgr::PRESC::Div2, 2),
+                        2..=3 => ($timXpac::cfgr::PRESC::Div4, 4),
+                        4..=7 => ($timXpac::cfgr::PRESC::Div8, 8),
+                        8..=15 => ($timXpac::cfgr::PRESC::Div16, 16),
+                        16..=31 => ($timXpac::cfgr::PRESC::Div32, 32),
+                        32..=63 => ($timXpac::cfgr::PRESC::Div64, 64),
+                        _ => ($timXpac::cfgr::PRESC::Div128, 128),
                     };
 
                     // Calcuate reload
@@ -820,15 +820,15 @@ macro_rules! lptim_hal {
                     assert!(arr > 0);
 
                     // Write CFGR: LPTIM must be disabled
-                    self.tim.cfgr.modify(|_, w| w.presc().variant(prescale));
+                    self.tim.cfgr().modify(|_, w| w.presc().variant(prescale));
 
                     // Enable
-                    self.tim.cr.write(|w| w.enable().enabled());
+                    self.tim.cr().write(|w| w.enable().enabled());
 
                     // Write ARR: LPTIM must be enabled
-                    self.tim.arr.write(|w| w.arr().bits(arr as u16));
-                    while self.tim.isr.read().arrok().bit_is_clear() {}
-                    self.tim.icr.write(|w| w.arrokcf().clear());
+                    self.tim.arr().write(|w| w.arr().bits(arr as u16));
+                    while self.tim.isr().read().arrok().bit_is_clear() {}
+                    self.tim.icr().write(|w| w.arrokcf().clear());
                 }
 
                 /// Private method to configure the timer to count up at the
@@ -845,28 +845,28 @@ macro_rules! lptim_hal {
                             "LPTIM input clock is too slow to achieve this frequency");
 
                     let (prescale, _prescale_div) = match ticks {
-                        0..=1 => ($timXpac::cfgr::PRESC_A::Div1, 1),
-                        2 => ($timXpac::cfgr::PRESC_A::Div2, 2),
-                        3..=4 => ($timXpac::cfgr::PRESC_A::Div4, 4),
-                        5..=8 => ($timXpac::cfgr::PRESC_A::Div8, 8),
-                        9..=16 => ($timXpac::cfgr::PRESC_A::Div16, 16),
-                        17..=32 => ($timXpac::cfgr::PRESC_A::Div32, 32),
-                        33..=64 => ($timXpac::cfgr::PRESC_A::Div64, 64),
-                        _ => ($timXpac::cfgr::PRESC_A::Div128, 128),
+                        0..=1 => ($timXpac::cfgr::PRESC::Div1, 1),
+                        2 => ($timXpac::cfgr::PRESC::Div2, 2),
+                        3..=4 => ($timXpac::cfgr::PRESC::Div4, 4),
+                        5..=8 => ($timXpac::cfgr::PRESC::Div8, 8),
+                        9..=16 => ($timXpac::cfgr::PRESC::Div16, 16),
+                        17..=32 => ($timXpac::cfgr::PRESC::Div32, 32),
+                        33..=64 => ($timXpac::cfgr::PRESC::Div64, 64),
+                        _ => ($timXpac::cfgr::PRESC::Div128, 128),
                     };
 
                     // Write CFGR: LPTIM must be disabled
-                    self.tim.cfgr.modify(|_, w| w.presc().variant(prescale));
+                    self.tim.cfgr().modify(|_, w| w.presc().variant(prescale));
 
                     // Enable
-                    self.tim.cr.write(|w| w.enable().enabled());
+                    self.tim.cr().write(|w| w.enable().enabled());
 
                     // Set ARR = max
 
                     // Write ARR: LPTIM must be enabled
-                    self.tim.arr.write(|w| w.arr().bits(0xFFFF as u16));
-                    while self.tim.isr.read().arrok().bit_is_clear() {}
-                    self.tim.icr.write(|w| w.arrokcf().clear());
+                    self.tim.arr().write(|w| w.arr().bits(0xFFFF as u16));
+                    while self.tim.isr().read().arrok().bit_is_clear() {}
+                    self.tim.icr().write(|w| w.arrokcf().clear());
                 }
             }
 
@@ -877,10 +877,10 @@ macro_rules! lptim_hal {
                 fn counter(&self) -> u16 {
                     loop {
                         // Read once
-                        let count1 = self.tim.cnt.read().cnt().bits();
+                        let count1 = self.tim.cnt().read().cnt().bits();
 
                         // Read twice - see RM0433 Rev 7. 43.4.14
-                        let count2 = self.tim.cnt.read().cnt().bits();
+                        let count2 = self.tim.cnt().read().cnt().bits();
 
                         if count1 == count2 { return count2; }
                     }
@@ -888,13 +888,13 @@ macro_rules! lptim_hal {
 
                 fn clear_irq(&mut self) {
                     // Clear autoreload match event
-                    self.tim.icr.write(|w| w.arrmcf().set_bit());
-                    while self.tim.isr.read().arrm().bit_is_set() {}
+                    self.tim.icr().write(|w| w.arrmcf().set_bit());
+                    while self.tim.isr().read().arrm().bit_is_set() {}
                 }
 
                 fn free(self) -> (Self::Timer, Self::Rec) {
                     // Disable timer
-                    self.tim.cr.write(|w| w.enable().disabled());
+                    self.tim.cr().write(|w| w.enable().disabled());
 
                     (self.tim, rec::$Rec { _marker: PhantomData })
                 }

@@ -105,7 +105,7 @@ macro_rules! vco_setup {
          assert!((1_000_000..=2_000_000).contains(&ref_x_ck));
 
          // Configure VCO
-         $rcc.pllcfgr.modify(|_, w| {
+         $rcc.pllcfgr().modify(|_, w| {
              w.$pllXvcosel()
                  .medium_vco() // 150 - 420MHz Medium VCO
                  .$pllXrge()
@@ -158,11 +158,11 @@ macro_rules! vco_setup {
          assert!((2_000_000..=16_000_000).contains(&ref_x_ck));
 
          // Configure VCO
-         $rcc.pllcfgr.modify(|_, w| {
+         $rcc.pllcfgr().modify(|_, w| {
              w.$pllXvcosel()
                  .wide_vco() // Wide Range VCO
          });
-         $rcc.pllcfgr.modify(|_, w| {
+         $rcc.pllcfgr().modify(|_, w| {
              match ref_x_ck {
                  2_000_000 ..= 3_999_999 => // ref_x_ck is 2 - 4 MHz
                      w.$pllXrge().range2(),
@@ -226,13 +226,13 @@ macro_rules! pll_setup {
                 let pll_x_n = vco_ck_target / ref_x_ck;
 
                 // Write dividers
-                rcc.pllckselr.modify(|_, w| {
+                rcc.pllckselr().modify(|_, w| {
                     w.$divmX().bits(pll_x_m as u8) // ref prescaler
                 });
                 // unsafe as not all values are permitted: see RM0433
                 assert!(pll_x_n >= 4);
                 assert!(pll_x_n <= 512);
-                rcc.$pllXdivr
+                rcc.$pllXdivr()
                     .modify(|_, w| unsafe { w.$divnX().bits((pll_x_n - 1) as u16) });
 
                 // Configure N divider. Returns the resulting VCO frequency
@@ -241,11 +241,11 @@ macro_rules! pll_setup {
                         // Calculate FRACN
                         let pll_x_fracn = calc_fracn(ref_x_ck as f32, pll_x_n as f32, pll_x as f32, output as f32);
                         //RCC_PLL1FRACR
-                        rcc.$pllXfracr.modify(|_, w| {
+                        rcc.$pllXfracr().modify(|_, w| {
                             w.$fracnx().bits(pll_x_fracn)
                         });
                         // Enable FRACN
-                        rcc.pllcfgr.modify(|_, w| {
+                        rcc.pllcfgr().modify(|_, w| {
                             w.$pllXfracen().set()
                         });
 
@@ -257,11 +257,11 @@ macro_rules! pll_setup {
                         // Round up instead of down for FractionalNotLess
                         pll_x_fracn += 1;
                         //RCC_PLL1FRACR
-                        rcc.$pllXfracr.modify(|_, w| {
+                        rcc.$pllXfracr().modify(|_, w| {
                             w.$fracnx().bits(pll_x_fracn)
                         });
                         // Enable FRACN
-                        rcc.pllcfgr.modify(|_, w| {
+                        rcc.pllcfgr().modify(|_, w| {
                             w.$pllXfracen().set()
                         });
 
@@ -271,7 +271,7 @@ macro_rules! pll_setup {
                     // Iterative
                     _ => {
                         // No FRACN
-                        rcc.pllcfgr.modify(|_, w| {
+                        rcc.pllcfgr().modify(|_, w| {
                             w.$pllXfracen().reset()
                         });
 
@@ -301,16 +301,16 @@ macro_rules! pll_setup {
                                     "Cannot achieve output frequency this low: Maximum PLL divider is 128");
 
                             // Setup divider
-                            rcc.$pllXdivr
+                            rcc.$pllXdivr()
                                 .modify(|_, w| $($unsafe)* {
                                     w.$div().bits((dividers.$DD - 1) as u8)
                                 });
 
-                            rcc.pllcfgr.modify(|_, w| w.$diven().enabled());
+                            rcc.pllcfgr().modify(|_, w| w.$diven().enabled());
                             Some(Hertz::from_raw(vco_ck / dividers.$DD))
                         },
                         None => {
-                            rcc.pllcfgr.modify(|_, w| w.$diven().disabled());
+                            rcc.pllcfgr().modify(|_, w| w.$diven().disabled());
                             None
                         }
                     },
